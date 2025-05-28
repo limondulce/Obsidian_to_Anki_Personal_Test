@@ -6,6 +6,7 @@
 
 .anki-settings-table {
   border-collapse: collapse;
+  display: none;
 }
 
 .anki-center {
@@ -16,11 +17,11 @@
 
 
 /* styles for search bar */
-.anki-folder-search {
+.anki-folder-search-bar{
   margin-bottom: 10px;
 }
 
-.anki-folder-search input {
+.anki-folder-search-bar input {
   width: 100%;
   padding: 5px;
   box-sizing: border-box;
@@ -30,7 +31,7 @@
   color: var(--text-normal);
 }
 
-.anki-folder-search input:focus {
+.anki-folder-search-bar input:focus {
   outline: none;
   border-color: var(--interactive-accent);
   box-shadow: 0 0 0 1px var(--interactive-accent);
