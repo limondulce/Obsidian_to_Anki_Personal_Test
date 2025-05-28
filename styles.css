@@ -6,7 +6,6 @@
 
 .anki-settings-table {
   border-collapse: collapse;
-  display: none;
 }
 
 .anki-center {
@@ -14,18 +13,14 @@
   padding: 5px;
   padding-top: 30px;
 }
-/*
-.anki-rotated {
-    transform: rotate(-90deg);
-}
-*/
 
-/* Estilos para la barra de búsqueda */
-.search-container {
+
+/* styles for search bar */
+.anki-folder-search {
   margin-bottom: 10px;
 }
 
-.search-input {
+.anki-folder-search input {
   width: 100%;
   padding: 5px;
   box-sizing: border-box;
@@ -35,8 +30,9 @@
   color: var(--text-normal);
 }
 
-.search-input:focus {
+.anki-folder-search input:focus {
   outline: none;
   border-color: var(--interactive-accent);
   box-shadow: 0 0 0 1px var(--interactive-accent);
 }
+

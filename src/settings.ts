@@ -301,20 +301,20 @@ export class SettingsTab extends PluginSettingTab {
 		const plugin = (this as any).plugin;
 		let folder_tags = plugin.settings.FOLDER_TAGS;
 
-		// Crea un botón en la celda correspondiente
+		// Create a button in the corresponding cell
 		let cell = row_cells[3] as HTMLElement;
-		cell.innerHTML = ""; // Limpia la celda
+		cell.innerHTML = ""; // clean cell content
 
 		let button = document.createElement("button");
-		button.textContent = "Copiar a Tags";
+		button.textContent = "Convert"; // convert folder path to tag
 		button.className = "mod-cta";
 
 		button.onclick = () => {
-			// Convierte el path del folder a formato de tag
+			// Converts the folder path to tag format
 			const tag = folder.path.replace(/^\/+|\/+$/g, "").replace(/\//g, "::");
 			folder_tags[folder.path] = tag;
 
-			// Actualiza el input de Folder Tags en la tabla visualmente
+			// Updates the Folder Tags entry in the table visually
 			const tagInput = (row_cells[2] as HTMLElement).querySelector("input");
 			if (tagInput) {
 				(tagInput as HTMLInputElement).value = tag;
@@ -335,7 +335,7 @@ export class SettingsTab extends PluginSettingTab {
 
 		// --- Search bar ---
 		const searchDiv = containerEl.createEl('div', {cls: 'anki-folder-search'});
-		const searchInput = searchDiv.createEl('input', {type: 'text', placeholder: 'Buscar folder...'});
+		const searchInput = searchDiv.createEl('input', {type: 'text', placeholder: 'Search folder...'});
 		searchInput.style.marginBottom = "8px";
 		searchInput.style.width = "100%";
 
@@ -355,7 +355,7 @@ export class SettingsTab extends PluginSettingTab {
 			plugin.settings.FOLDER_TAGS = {}
 		}
 
-		// Guarda las filas para filtrar después
+		// Save rows for later filtering
 		const rows: HTMLTableRowElement[] = [];
 
 		for (let folder of folder_list) {
@@ -375,7 +375,7 @@ export class SettingsTab extends PluginSettingTab {
 			rows.push(row);
 		}
 
-		// Evento de búsqueda
+		// Search event
 		searchInput.addEventListener('input', () => {
 			const value = searchInput.value.toLowerCase();
 			rows.forEach(row => {
