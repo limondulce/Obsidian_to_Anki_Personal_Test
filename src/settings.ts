@@ -297,16 +297,52 @@ export class SettingsTab extends PluginSettingTab {
 		folder_tag.controlEl.className += " anki-center"
 	}
 
+	setup_folders_to_tags(folder: TFolder, row_cells: HTMLCollection) { //#test1
+		const plugin = (this as any).plugin;
+		let folder_tags = plugin.settings.FOLDER_TAGS;
+
+		// Crea un botón en la celda correspondiente
+		let cell = row_cells[3] as HTMLElement;
+		cell.innerHTML = ""; // Limpia la celda
+
+		let button = document.createElement("button");
+		button.textContent = "Copiar a Tags";
+		button.className = "mod-cta";
+
+		button.onclick = () => {
+			// Convierte el path del folder a formato de tag
+			const tag = folder.path.replace(/^\/+|\/+$/g, "").replace(/\//g, "::");
+			folder_tags[folder.path] = tag;
+
+			// Actualiza el input de Folder Tags en la tabla visualmente
+			const tagInput = (row_cells[2] as HTMLElement).querySelector("input");
+			if (tagInput) {
+				(tagInput as HTMLInputElement).value = tag;
+			}
+
+			plugin.saveAllData();
+			new Notice("¡Tag copiado!");
+		};
+
+		cell.appendChild(button);
+	}
 	setup_folder_table() {
 		let {containerEl} = this;
 		const plugin = (this as any).plugin
 		const folder_list = this.get_folders()
 		containerEl.createEl('h3', {text: 'Folder settings'})
 		this.create_collapsible("Folder Table")
+
+		// --- Search bar ---
+		const searchDiv = containerEl.createEl('div', {cls: 'anki-folder-search'});
+		const searchInput = searchDiv.createEl('input', {type: 'text', placeholder: 'Buscar folder...'});
+		searchInput.style.marginBottom = "8px";
+		searchInput.style.width = "100%";
+
 		let folder_table = containerEl.createEl('table', {cls: "anki-settings-table"})
 		let head = folder_table.createTHead()
 		let header_row = head.insertRow()
-		for (let header of ["Folder", "Folder Deck", "Folder Tags"]) {
+		for (let header of ["Folder", "Folder Deck", "Folder Tags", "Folders to Tags"]) {
 			let th = document.createElement("th")
 			th.appendChild(document.createTextNode(header))
 			header_row.appendChild(th)
@@ -318,9 +354,13 @@ export class SettingsTab extends PluginSettingTab {
 		if (!(plugin.settings.hasOwnProperty("FOLDER_TAGS"))) {
 			plugin.settings.FOLDER_TAGS = {}
 		}
+
+		// Guarda las filas para filtrar después
+		const rows: HTMLTableRowElement[] = [];
+
 		for (let folder of folder_list) {
 			let row = main_body.insertRow()
-
+			row.insertCell()
 			row.insertCell()
 			row.insertCell()
 			row.insertCell()
@@ -330,8 +370,19 @@ export class SettingsTab extends PluginSettingTab {
 			row_cells[0].innerHTML = folder.path
 			this.setup_folder_deck(folder, row_cells)
 			this.setup_folder_tag(folder, row_cells)
+			this.setup_folders_to_tags(folder, row_cells)
+
+			rows.push(row);
 		}
 
+		// Evento de búsqueda
+		searchInput.addEventListener('input', () => {
+			const value = searchInput.value.toLowerCase();
+			rows.forEach(row => {
+				const folderName = row.children[0].textContent?.toLowerCase() || "";
+				row.style.display = folderName.includes(value) ? "" : "none";
+			});
+		});
 	}
 
 	setup_buttons() {

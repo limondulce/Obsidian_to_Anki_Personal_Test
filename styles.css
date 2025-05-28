@@ -1,4 +1,5 @@
-.anki-settings-table td, .anki-settings-table th {
+.anki-settings-table td,
+.anki-settings-table th {
   border: 1px solid var(--background-modifier-border);
   padding: 4px 10px;
 }
@@ -13,7 +14,29 @@
   padding: 5px;
   padding-top: 30px;
 }
-
+/*
 .anki-rotated {
     transform: rotate(-90deg);
+}
+*/
+
+/* Estilos para la barra de búsqueda */
+.search-container {
+  margin-bottom: 10px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 5px;
+  box-sizing: border-box;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background-color: var(--background-primary);
+  color: var(--text-normal);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 1px var(--interactive-accent);
 }
