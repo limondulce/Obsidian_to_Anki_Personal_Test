@@ -364,38 +364,40 @@ export class SettingsTab extends PluginSettingTab {
         }
     }
 
-	setup_folder_table_search_bar() {
-    const { containerEl } = this;
-    // Find the folder table (assumes it's the last table created)
-    const tables = containerEl.querySelectorAll('table.anki-settings-table');
-    const folderTable = tables[tables.length - 1] as HTMLTableElement;
-    if (!folderTable) return;
+  setup_folder_table_search_bar() {
+    let { containerEl } = this;
+    const plugin = this.plugin;
 
-    // Create search bar
-    const searchDiv = containerEl.createEl('div', { cls: 'anki-folder-search-bar' });
-    const searchInput = document.createElement('input');
-    searchInput.type = 'text';
-    searchInput.placeholder = 'Search folders...';
-    searchInput.style.marginBottom = '8px';
+    // Create search bar container at the top
+    const searchDiv = containerEl.createEl("div", { cls: "anki-global-search-bar" });
+    const searchInput = document.createElement("input");
+    searchInput.type = "text";
+    searchInput.placeholder = "Search all tables...";
+    searchInput.style.marginBottom = "16px";
+    searchInput.style.width = "100%";
     searchDiv.appendChild(searchInput);
 
-    // Insert search bar before the table
-    folderTable.parentNode?.insertBefore(searchDiv, folderTable);
+    // Add search logic that applies to all tables
+    searchInput.addEventListener("input", () => {
+      const filter = searchInput.value.toLowerCase();
+      const tables = containerEl.querySelectorAll("table.anki-settings-table");
 
-    // Add search logic
-    searchInput.addEventListener('input', () => {
-        const filter = searchInput.value.toLowerCase();
-        const rows = folderTable.tBodies[0].rows;
+      tables.forEach(table => {
+        if (!(table instanceof HTMLTableElement)) return;
+
+        const rows = table.tBodies[0].rows;
         for (let i = 0; i < rows.length; i++) {
-            const folderCell = rows[i].cells[0];
-            if (folderCell.innerText.toLowerCase().includes(filter)) {
-                rows[i].style.display = '';
-            } else {
-                rows[i].style.display = 'none';
-            }
+          // Search in first column of each row (where the names are)
+          const nameCell = rows[i].cells[0];
+          if (nameCell.innerText.toLowerCase().includes(filter)) {
+            rows[i].style.display = "";
+          } else {
+            rows[i].style.display = "none";
+          }
         }
+      });
     });
-}
+  }
 
 	setup_buttons() {
 		let {containerEl} = this
@@ -500,9 +502,9 @@ export class SettingsTab extends PluginSettingTab {
 		containerEl.empty()
 		containerEl.createEl('h2', {text: 'Obsidian_to_Anki settings'})
 		containerEl.createEl('a', {text: 'For more information check the wiki', href: "https://github.com/Pseudonium/Obsidian_to_Anki/wiki"})
+	    this.setup_folder_table_search_bar()
 		this.setup_note_table()
 		this.setup_folder_table()
-		this.setup_folder_table_search_bar()
 		this.setup_syntax()
 		this.setup_defaults()
 		this.setup_buttons()
