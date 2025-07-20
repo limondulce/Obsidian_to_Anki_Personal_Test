@@ -2,13 +2,13 @@ name: Test e2e
 
 env:
   PLUGIN_NAME: obsidian-to-anki-plugin
-  NODE_V: '18.x'
+  NODE_V: "18.x"
 
 on:
   # push:
   #   branches: [ master ]
   pull_request:
-    branches: [ master ]
+    branches: [master]
   repository_dispatch:
     types: [ok-to-test-command]
 
@@ -31,13 +31,12 @@ jobs:
           npm install obsidian 
           npm ci
       - run: npm run build --if-present
-      
       - name: Run Tests
-        run: | 
+        run: |
           # npm run test
           sudo npm run test-wdio
           sudo npm run test-py
-      
+
       - name: Set output perms
         if: always()
         run: |
@@ -63,9 +62,9 @@ jobs:
 
         with:
           report_individual_runs: true
-          report_suite_logs: 'any'
-          deduplicate_classes_by_file_name: true          
-          comment_title: '🛠 Test Results'
+          report_suite_logs: "any"
+          deduplicate_classes_by_file_name: true
+          comment_title: "🛠 Test Results"
           files: |
             logs/test-reports/**/*.xml
 
@@ -75,23 +74,23 @@ jobs:
       #   with:
       #     name: JUnit Reprot
       #     path: logs/test-reports/wdio.xml
-      #     reporter: jest-junit      
+      #     reporter: jest-junit
       - uses: actions/setup-node@v4
         with:
           node-version: 16
       - uses: iterative/setup-cml@v1
         if: always()
-      
+
       - name: Publish Screenshots - Find Comment
         if: always()
         uses: peter-evans/find-comment@v3
         id: fc
         with:
           issue-number: ${{ github.event.number }}
-          body-includes: '# 📷 Screenshots of tests:'
+          body-includes: "# 📷 Screenshots of tests:"
           direction: last
-          comment-author: 'github-actions[bot]'
-      
+          comment-author: "github-actions[bot]"
+
       - name: Publish Screenshots - build comment
         if: always()
         env:
@@ -170,7 +169,7 @@ jobs:
 
           echo "" >> comment.md
           echo "###### For commit $sha" >> comment.md
-      
+
       - name: Publish Screehnshots - Update or Create Comment
         if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && always()
         uses: peter-evans/create-or-update-comment@v4
@@ -182,7 +181,7 @@ jobs:
 
       - name: Upload build artifacts
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PLUGIN_NAME }}
           path: |
@@ -194,7 +193,7 @@ jobs:
 
       - name: Upload build artifacts for failed builds
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PLUGIN_NAME }}-fail
           path: |
@@ -218,18 +217,18 @@ jobs:
       - name: Fork based /ok-to-test checkout
         uses: actions/checkout@v4
         with:
-          ref: 'refs/pull/${{ github.event.client_payload.pull_request.number }}/merge'
+          ref: "refs/pull/${{ github.event.client_payload.pull_request.number }}/merge"
 
-  # Test:
-  #   if: always()
-  #   needs: [checkout-trusted, checkout-signed]
-  #   runs-on: ubuntu-latest
+      # Test:
+      #   if: always()
+      #   needs: [checkout-trusted, checkout-signed]
+      #   runs-on: ubuntu-latest
 
-  #   strategy:
-  #     matrix:
-  #       node-version: [18.x]
+      #   strategy:
+      #     matrix:
+      #       node-version: [18.x]
 
-  # steps:
+      # steps:
       # - name: Trusted Checkout
       #   if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
       #   uses: actions/checkout@v4
@@ -242,13 +241,13 @@ jobs:
           npm ci
       - run: npm run build --if-present
       # - run: npm test
-      
+
       - name: Run Tests
-        run: | 
+        run: |
           # npm run test
           sudo npm run test-wdio
           sudo npm run test-py
-      
+
       - name: Set output perms
         if: always()
         run: |
@@ -272,9 +271,9 @@ jobs:
         if: always()
         with:
           report_individual_runs: true
-          report_suite_logs: 'any'
+          report_suite_logs: "any"
           deduplicate_classes_by_file_name: true
-          comment_title: '🛠 Test Results'
+          comment_title: "🛠 Test Results"
           commit: ${{ github.event.client_payload.pull_request.head.sha }}
           files: |
             logs/test-reports/**/*.xml
@@ -286,20 +285,20 @@ jobs:
       #     name: JUnit Reprot
       #     path: logs/test-reports/wdio.xml
       #     reporter: jest-junit
-      
+
       - uses: iterative/setup-cml@v1
         if: always()
-      
+
       - name: Publish Screenshots - Find Comment
         if: always()
         uses: peter-evans/find-comment@v3
         id: fc
         with:
           issue-number: ${{ github.event.client_payload.pull_request.number }}
-          body-includes: '# 📷 Screenshots of tests:'
+          body-includes: "# 📷 Screenshots of tests:"
           direction: last
-          comment-author: 'github-actions[bot]'
-      
+          comment-author: "github-actions[bot]"
+
       - name: Publish Screenshots - build comment
         if: always()
         env:
@@ -371,7 +370,7 @@ jobs:
 
           echo "" >> comment.md
           echo "###### For commit $sha" >> comment.md
-      
+
       - name: Publish Screehnshots - Update or Create Comment
         if: always()
         uses: peter-evans/create-or-update-comment@v4
@@ -383,7 +382,7 @@ jobs:
 
       - name: Upload build artifacts
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PLUGIN_NAME }}
           path: |
@@ -395,25 +394,25 @@ jobs:
 
       - name: Upload build artifacts for failed builds
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PLUGIN_NAME }}-fail
           path: |
             tests/test_config
             tests/test_vault
-    
-  # MapjobStatus:
-  #   needs: [Test]
-  #   runs-on: ubuntu-latest
-  #   if: |
-  #     github.event_name == 'repository_dispatch' &&
-  #     github.event.client_payload.slash_command.args.named.sha != '' &&
-  #     contains(
-  #       github.event.client_payload.pull_request.head.sha,
-  #       github.event.client_payload.slash_command.args.named.sha
-  #     )
-    
-  #   steps:
+
+      # MapjobStatus:
+      #   needs: [Test]
+      #   runs-on: ubuntu-latest
+      #   if: |
+      #     github.event_name == 'repository_dispatch' &&
+      #     github.event.client_payload.slash_command.args.named.sha != '' &&
+      #     contains(
+      #       github.event.client_payload.pull_request.head.sha,
+      #       github.event.client_payload.slash_command.args.named.sha
+      #     )
+
+      #   steps:
       - uses: actions/github-script@v7
         id: update-check-run
         if: ${{ always() }}
@@ -421,7 +420,7 @@ jobs:
           number: ${{ github.event.client_payload.pull_request.number }}
           job: ${{ github.job }}
           # Conveniently, job.status maps to https://developer.github.com/v3/checks/runs/#update-a-check-run
-          conclusion: ${{ job.status }} 
+          conclusion: ${{ job.status }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -444,4 +443,3 @@ jobs:
               });
               return result;
             }
-
