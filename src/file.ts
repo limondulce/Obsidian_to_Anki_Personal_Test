@@ -345,7 +345,10 @@ export class AllFile extends AbstractFile {
                 this.ignore_spans.pop();
                 continue;
               }
-              console.warn("Note with id", parsed.identifier, " in file ", this.path, " does not exist in Anki!");
+              // ID exists in file but not in Anki: treat as new note, but preserve the ID
+              parsed.note.tags.push(...this.global_tags.split(TAG_SEP));
+              this.regex_notes_to_add.push(parsed.note);
+              this.regex_id_indexes.push(match.index + match[0].length);
             } else {
               this.notes_to_edit.push(parsed);
             }
