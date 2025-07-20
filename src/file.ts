@@ -26,47 +26,47 @@ function id_to_str(identifier:number, inline:boolean = false, comment:boolean = 
 }
 
 function string_insert(text: string, position_inserts: Array<[number, string]>): string {
-	/*Insert strings in position_inserts into text, at indices.
+    /*Insert strings in position_inserts into text, at indices.
 
     position_inserts will look like:
     [(0, "hi"), (3, "hello"), (5, "beep")]*/
-	let offset = 0
-	let sorted_inserts: Array<[number, string]> = position_inserts.sort((a, b):number => a[0] - b[0])
-	for (let insertion of sorted_inserts) {
-		let position = insertion[0]
-		let insert_str = insertion[1]
-		text = text.slice(0, position + offset) + insert_str + text.slice(position + offset)
-		offset += insert_str.length
-	}
-	return text
+    let offset = 0
+    let sorted_inserts: Array<[number, string]> = position_inserts.sort((a, b):number => a[0] - b[0])
+    for (let insertion of sorted_inserts) {
+        let position = insertion[0]
+        let insert_str = insertion[1]
+        text = text.slice(0, position + offset) + insert_str + text.slice(position + offset)
+        offset += insert_str.length
+    }
+    return text
 }
 
 function spans(pattern: RegExp, text: string): Array<[number, number]> {
-	/*Return a list of span-tuples for matches of pattern in text.*/
-	let output: Array<[number, number]> = []
-	let matches = text.matchAll(pattern)
-	for (let match of matches) {
-		output.push(
-			[match.index, match.index + match[0].length]
-		)
-	}
-	return output
+    /*Return a list of span-tuples for matches of pattern in text.*/
+    let output: Array<[number, number]> = []
+    let matches = text.matchAll(pattern)
+    for (let match of matches) {
+        output.push(
+            [match.index, match.index + match[0].length]
+        )
+    }
+    return output
 }
 
 function contained_in(span: [number, number], spans: Array<[number, number]>): boolean {
-	/*Return whether span is contained in spans (+- 1 leeway)*/
-	return spans.some(
-		(element) => span[0] >= element[0] - 1 && span[1] <= element[1] + 1
-	)
+    /*Return whether span is contained in spans (+- 1 leeway)*/
+    return spans.some(
+        (element) => span[0] >= element[0] - 1 && span[1] <= element[1] + 1
+    )
 }
 
 function* findignore(pattern: RegExp, text: string, ignore_spans: Array<[number, number]>): IterableIterator<RegExpMatchArray> {
-	let matches = text.matchAll(pattern)
-	for (let match of matches) {
-		if (!(contained_in([match.index, match.index + match[0].length], ignore_spans))) {
-			yield match
-		}
-	}
+    let matches = text.matchAll(pattern)
+    for (let match of matches) {
+        if (!(contained_in([match.index, match.index + match[0].length], ignore_spans))) {
+            yield match
+        }
+    }
 }
 
 abstract class AbstractFile {
@@ -309,19 +309,20 @@ export class AllFile extends AbstractFile {
                 this.data.add_context ? this.getContextAtIndex(note_match.index) : ""
             )
             if (parsed.identifier == null) {
-                // Need to make sure global_tags get added
+                // No ID found, treat as new note
                 parsed.note.tags.push(...this.global_tags.split(TAG_SEP))
                 this.notes_to_add.push(parsed.note)
                 this.id_indexes.push(position)
             } else if (!this.data.EXISTING_IDS.includes(parsed.identifier)) {
                 if (parsed.identifier == CLOZE_ERROR) {
                     continue
-                }
-                // Need to show an error otherwise
-                else if (parsed.identifier == NOTE_TYPE_ERROR) {
+                } else if (parsed.identifier == NOTE_TYPE_ERROR) {
                     console.warn("Did not recognise note type ", parsed.note.modelName, " in file ", this.path)
                 } else {
-                    console.warn("Note with id", parsed.identifier, " in file ", this.path, " does not exist in Anki!")
+                    // ID exists in file but not in Anki: treat as new note, but preserve the ID
+                    parsed.note.tags.push(...this.global_tags.split(TAG_SEP))
+                    this.notes_to_add.push(parsed.note)
+                    this.id_indexes.push(position)
                 }
             } else {
                 this.notes_to_edit.push(parsed)
@@ -347,16 +348,19 @@ export class AllFile extends AbstractFile {
                 this.data.add_context ? this.getContextAtIndex(note_match.index) : ""
             )
             if (parsed.identifier == null) {
-                // Need to make sure global_tags get added
+                // No ID found, treat as new note
                 parsed.note.tags.push(...this.global_tags.split(TAG_SEP))
                 this.inline_notes_to_add.push(parsed.note)
                 this.inline_id_indexes.push(position)
             } else if (!this.data.EXISTING_IDS.includes(parsed.identifier)) {
-                // Need to show an error
                 if (parsed.identifier == CLOZE_ERROR) {
                     continue
+                } else {
+                    // ID exists in file but not in Anki: treat as new note, but preserve the ID
+                    parsed.note.tags.push(...this.global_tags.split(TAG_SEP))
+                    this.inline_notes_to_add.push(parsed.note)
+                    this.inline_id_indexes.push(position)
                 }
-                console.warn("Note with id", parsed.identifier, " in file ", this.path, " does not exist in Anki!")
             } else {
                 this.notes_to_edit.push(parsed)
             }
