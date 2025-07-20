@@ -388,22 +388,36 @@ export class AllFile extends AbstractFile {
   writeIDs() {
     let normal_inserts: [number, string][] = [];
     this.id_indexes.forEach((id_position: number, index: number) => {
-      const identifier: number | null = this.note_ids[index];
+      // If the note already had an ID, preserve it; otherwise, use the new one from Anki
+      let identifier: number | null = this.note_ids[index];
       if (identifier) {
+        // Check if the corresponding note in notes_to_add has an identifier property (preserved from file)
+        const note = this.notes_to_add[index];
+        if (note && (note as any).identifier) {
+          identifier = (note as any).identifier;
+        }
         normal_inserts.push([id_position, id_to_str(identifier, false, this.data.comment)]);
       }
     });
     let inline_inserts: [number, string][] = [];
     this.inline_id_indexes.forEach((id_position: number, index: number) => {
-      const identifier: number | null = this.note_ids[index + this.notes_to_add.length]; //Since regular then inline
+      let identifier: number | null = this.note_ids[index + this.notes_to_add.length];
       if (identifier) {
+        const note = this.inline_notes_to_add[index];
+        if (note && (note as any).identifier) {
+          identifier = (note as any).identifier;
+        }
         inline_inserts.push([id_position, id_to_str(identifier, true, this.data.comment)]);
       }
     });
     let regex_inserts: [number, string][] = [];
     this.regex_id_indexes.forEach((id_position: number, index: number) => {
-      const identifier: number | null = this.note_ids[index + this.notes_to_add.length + this.inline_notes_to_add.length]; // Since regular then inline then regex
+      let identifier: number | null = this.note_ids[index + this.notes_to_add.length + this.inline_notes_to_add.length];
       if (identifier) {
+        const note = this.regex_notes_to_add[index];
+        if (note && (note as any).identifier) {
+          identifier = (note as any).identifier;
+        }
         regex_inserts.push([id_position, "\n" + id_to_str(identifier, false, this.data.comment)]);
       }
     });
