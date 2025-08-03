@@ -33,12 +33,12 @@ let converter: Converter = new Converter({
 })
 
 function escapeHtml(unsafe: string): string {
-    return unsafe
-         .replace(/&/g, "&amp;")
-         .replace(/</g, "&lt;")
-         .replace(/>/g, "&gt;")
-         .replace(/"/g, "&quot;")
-         .replace(/'/g, "&#039;");
+	return unsafe
+		 .replace(/&/g, "&amp;")
+		 .replace(/</g, "&lt;")
+		 .replace(/>/g, "&gt;")
+		 .replace(/"/g, "&quot;")
+		 .replace(/'/g, "&#039;");
  }
 
 export class FormatConverter {
@@ -54,8 +54,8 @@ export class FormatConverter {
 	}
 
 	getUrlFromLink(link: string): string {
-        return "obsidian://open?vault=" + encodeURIComponent(this.vault_name) + String.raw`&file=` + encodeURIComponent(link)
-    }
+		return "obsidian://open?vault=" + encodeURIComponent(this.vault_name) + String.raw`&file=` + encodeURIComponent(link)
+	}
 
 	format_note_with_url(note: AnkiConnectNote, url: string, field: string): void {
 		note.fields[field] += '<br><a href="' + url + '" class="obsidian-link">Obsidian</a>'
@@ -112,7 +112,28 @@ export class FormatConverter {
 				}
 			}
 		}
-		return note_text
+		// Now, scan for any ![[...]] links in the markdown that may not be in file_cache.embeds
+		const EMBED_MD_LINK = /!\[\[(.*?)\]\]/g;
+		let match;
+		const alreadyHandled = new Set(
+			this.file_cache.embeds ? this.file_cache.embeds.map(e => e.original) : []
+		);
+		while ((match = EMBED_MD_LINK.exec(note_text)) !== null) {
+			const original = match[0];
+			const link = match[1];
+			const displayText = link;
+			// Skip if already handled by file_cache.embeds
+			if (alreadyHandled.has(original)) continue;
+			this.detectedMedia.add(link);
+			if (AUDIO_EXTS.includes(extname(link))) {
+				note_text = note_text.replace(new RegExp(c.escapeRegex(original), "g"), "[sound:" + basename(link) + "]");
+			} else if (IMAGE_EXTS.includes(extname(link))) {
+				note_text = note_text.replace(new RegExp(c.escapeRegex(original), "g"), '<img src="' + basename(link) + '" alt="' + displayText + '">');
+			} else {
+				console.warn("Unsupported extension: ", extname(link));
+			}
+		}
+		return note_text;
 	}
 
 	formatLinks(note_text: string): string {
