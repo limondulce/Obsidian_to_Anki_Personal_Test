@@ -128,20 +128,39 @@ export class FormatConverter {
 			const link = match[1];
 			// Skip if already processed by file_cache embeds
 			if (this.file_cache && this.file_cache.embeds && this.file_cache.embeds.some(e => e.original === original)) continue;
-			this.detectedMedia.add(link);
-			if (AUDIO_EXTS.includes(extname(link))) {
+			// Support for aliases: ![[target|alias]]
+			let [target, alias] = link.split("|");
+			this.detectedMedia.add(target);
+			if (AUDIO_EXTS.includes(extname(target))) {
 				text = text.replace(
 					new RegExp(c.escapeRegex(original), "g"),
-					"[sound:" + basename(link) + "]"
+					"[sound:" + basename(target) + "]"
 				);
-			} else if (IMAGE_EXTS.includes(extname(link))) {
+			} else if (IMAGE_EXTS.includes(extname(target))) {
 				text = text.replace(
 					new RegExp(c.escapeRegex(original), "g"),
-					'<img src="' + basename(link) + '" alt="' + basename(link) + '">' 
+					'<img src="' + basename(target) + '" alt="' + (alias || basename(target)) + '">' 
 				);
 			} else {
-				console.warn("Unsupported extension: ", extname(link));
+				console.warn("Unsupported extension: ", extname(target));
 			}
+		}
+		// Also handle [[link|alias]] for normal links (not embeds)
+		const LINK_REGEX = /\[\[(.*?)\]\]/g;
+		while ((match = LINK_REGEX.exec(text)) !== null) {
+			const original = match[0];
+			const link = match[1];
+			let [target, alias] = link.split("|");
+			// Skip if this is an embed (already handled above)
+			if (original.startsWith('!')) continue;
+			// Skip if already processed by file_cache links
+			if (this.file_cache && this.file_cache.links && this.file_cache.links.some(e => e.original === original)) continue;
+			const displayText = alias || target;
+			const url = this.getUrlFromLink(target);
+			text = text.replace(
+				new RegExp(c.escapeRegex(original), "g"),
+				'<a href="' + url + '">' + displayText + '</a>'
+			);
 		}
 		return text;
 	}
