@@ -94,9 +94,12 @@ export class FormatConverter {
 	}
 
 	getAndFormatMedias(note_text: string): string {
+		// Case 1: If no embeds in cache, scan the text directly (could be in a code block)
 		if (!(this.file_cache.hasOwnProperty("embeds"))) {
-			return note_text
+			return this.scanAndReplaceEmbeds(note_text);
 		}
+
+		// Case 2: Process cached embeds first
 		for (let embed of this.file_cache.embeds) {
 			if (note_text.includes(embed.original)) {
 				this.detectedMedia.add(embed.link)
@@ -104,36 +107,43 @@ export class FormatConverter {
 					note_text = note_text.replace(new RegExp(c.escapeRegex(embed.original), "g"), "[sound:" + basename(embed.link) + "]")
 				} else if (IMAGE_EXTS.includes(extname(embed.link))) {
 					note_text = note_text.replace(
-						new RegExp(c.escapeRegex(embed.original), "g"),
-						'<img src="' + basename(embed.link) + '" alt="' + embed.displayText + '">'
-					)
+					new RegExp(c.escapeRegex(embed.original), "g"),
+					'<img src="' + basename(embed.link) + '" alt="' + (embed.displayText || basename(embed.link)) + '">' 
+				)
 				} else {
 					console.warn("Unsupported extension: ", extname(embed.link))
 				}
 			}
 		}
-		// Now, scan for any ![[...]] links in the markdown that may not be in file_cache.embeds
-		const EMBED_MD_LINK = /!\[\[(.*?)\]\]/g;
+
+		// Case 3: Scan for any remaining unprocessed markdown embeds
+		return this.scanAndReplaceEmbeds(note_text);
+	}
+
+	private scanAndReplaceEmbeds(text: string): string {
+		const EMBED_REGEX = /!\[\[(.*?)\]\]/g;
 		let match;
-		const alreadyHandled = new Set(
-			this.file_cache.embeds ? this.file_cache.embeds.map(e => e.original) : []
-		);
-		while ((match = EMBED_MD_LINK.exec(note_text)) !== null) {
+		while ((match = EMBED_REGEX.exec(text)) !== null) {
 			const original = match[0];
 			const link = match[1];
-			const displayText = link;
-			// Skip if already handled by file_cache.embeds
-			if (alreadyHandled.has(original)) continue;
+			// Skip if already processed by file_cache embeds
+			if (this.file_cache && this.file_cache.embeds && this.file_cache.embeds.some(e => e.original === original)) continue;
 			this.detectedMedia.add(link);
 			if (AUDIO_EXTS.includes(extname(link))) {
-				note_text = note_text.replace(new RegExp(c.escapeRegex(original), "g"), "[sound:" + basename(link) + "]");
+				text = text.replace(
+					new RegExp(c.escapeRegex(original), "g"),
+					"[sound:" + basename(link) + "]"
+				);
 			} else if (IMAGE_EXTS.includes(extname(link))) {
-				note_text = note_text.replace(new RegExp(c.escapeRegex(original), "g"), '<img src="' + basename(link) + '" alt="' + displayText + '">');
+				text = text.replace(
+					new RegExp(c.escapeRegex(original), "g"),
+					'<img src="' + basename(link) + '" alt="' + basename(link) + '">' 
+				);
 			} else {
 				console.warn("Unsupported extension: ", extname(link));
 			}
 		}
-		return note_text;
+		return text;
 	}
 
 	formatLinks(note_text: string): string {
